@@ -2,19 +2,39 @@ package main
 
 import (
 	"bufio"
+	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"sync"
+	"strconv"
+	"strings"
 
 	ps "github.com/Tobotobo/powershell"
 	"github.com/gdamore/tcell/v2"
 )
 
+type configData struct {
+	LABEL string
+	COUNT int
+	VOICE string
+}
+
+var (
+	configs []configData
+)
+
 func main() {
+	configs = nil
+
 	if len(os.Args) < 2 {
 		fmt.Println("使用法: go run main.go <ファイル名>")
-		return
+		os.Exit(1)
+	}
+
+	if loadConfig("vGrep.ini") == false {
+		log.Fatalf("Fail to read config file")
+		os.Exit(1)
 	}
 
 	// ファイルの読み込み
@@ -43,7 +63,14 @@ func main() {
 		for i := 0; i < height; i++ {
 			lineIdx := i + offset
 			if lineIdx < len(lines) {
-				drawText(s, 0, i, lines[lineIdx])
+				for m := 0; m < len(configs); m++ {
+					if strings.Index(lines[lineIdx], configs[m].LABEL) != -1 {
+						rr := strconv.Itoa(m)
+						drawText(s, 0, i, rr+" "+lines[lineIdx], true)
+					} else {
+						drawText(s, 0, i, "0 "+lines[lineIdx], false)
+					}
+				}
 			}
 		}
 
@@ -71,9 +98,13 @@ func main() {
 }
 
 // 指定した座標にテキストを描画するヘルパー関数
-func drawText(s tcell.Screen, x, y int, str string) {
+func drawText(s tcell.Screen, x, y int, str string, cFlag bool) {
 	for i, r := range str {
-		s.SetContent(x+i, y, r, nil, tcell.StyleDefault)
+		if cFlag == true {
+			s.SetContent(x+i, y, r, nil, tcell.StyleDefault.Foreground(tcell.ColorRed))
+		} else {
+			s.SetContent(x+i, y, r, nil, tcell.StyleDefault)
+		}
 	}
 }
 
@@ -93,13 +124,45 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func speak() {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	str := "abcdefg"
-	go func() {
-		ps.Execute(fmt.Sprintf("Add-Type -AssemblyName System.Speech; $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer; $voice.Speak('%s'); end", str))
-		defer wg.Done()
-	}()
-	wg.Wait()
+func speak(str string) {
+	//var wg sync.WaitGroup
+	//wg.Add(1)
+	//go func() {
+	ps.Execute(fmt.Sprintf("Add-Type -AssemblyName System.Speech; $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer; $voice.Speak('%s'); end", str))
+	//defer wg.Done()
+	//}()
+	//wg.Wait()
+}
+
+func loadConfig(configFile string) bool {
+	var fp *os.File
+	var err error
+	fp, err = os.Open(configFile)
+	if err != nil {
+		panic(err)
+	}
+	defer fp.Close()
+
+	reader := csv.NewReader(fp)
+	reader.Comma = '\t'
+	reader.LazyQuotes = true
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			panic(err)
+		}
+		if len(record) == 3 {
+			i, err := strconv.Atoi(record[1])
+			if err == nil {
+				configs = append(configs, configData{LABEL: record[0], COUNT: i, VOICE: record[2]})
+				fmt.Println(record)
+			}
+		}
+	}
+	if configs == nil {
+		return false
+	}
+	return true
 }
