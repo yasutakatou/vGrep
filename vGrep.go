@@ -25,6 +25,7 @@ var (
 )
 
 func main() {
+	var cnt []int
 	configs = nil
 
 	if len(os.Args) < 2 {
@@ -63,12 +64,23 @@ func main() {
 		for i := 0; i < height; i++ {
 			lineIdx := i + offset
 			if lineIdx < len(lines) {
+				cnt = nil
 				for m := 0; m < len(configs); m++ {
+					cnt = append(cnt, 0)
 					if strings.Index(lines[lineIdx], configs[m].LABEL) != -1 {
-						rr := strconv.Itoa(m)
-						drawText(s, 0, i, rr+" "+lines[lineIdx], true)
+						drawText(s, 0, i, lines[lineIdx], true)
+						cnt[m] = cnt[m] + 1
+						break
 					} else {
-						drawText(s, 0, i, "0 "+lines[lineIdx], false)
+						drawText(s, 0, i, lines[lineIdx], false)
+					}
+				}
+
+				for m := 0; m < len(configs); m++ {
+					if cnt[m] > configs[m].COUNT {
+						//go speak(configs[m].VOICE)
+						rr := strconv.Itoa(cnt[m])
+						drawText(s, 0, i, rr, false)
 					}
 				}
 			}
@@ -103,7 +115,7 @@ func drawText(s tcell.Screen, x, y int, str string, cFlag bool) {
 		if cFlag == true {
 			s.SetContent(x+i, y, r, nil, tcell.StyleDefault.Foreground(tcell.ColorRed))
 		} else {
-			s.SetContent(x+i, y, r, nil, tcell.StyleDefault)
+			s.SetContent(x+i, y, r, nil, tcell.StyleDefault.Foreground(tcell.ColorWhite))
 		}
 	}
 }
