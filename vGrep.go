@@ -29,7 +29,7 @@ func main() {
 	configs = nil
 
 	if len(os.Args) < 2 {
-		fmt.Println("使用法: go run main.go <ファイル名>")
+		fmt.Println("使用法: vGrep <ファイル名>")
 		os.Exit(1)
 	}
 
@@ -41,7 +41,7 @@ func main() {
 	// ファイルの読み込み
 	lines, err := readLines(os.Args[1])
 	if err != nil {
-		log.Fatalf("ファイルの読み込みに失敗しました: %v", err)
+		log.Fatalf("configファイルの読み込みに失敗しました: %v", err)
 	}
 
 	// 画面の初期化
@@ -135,13 +135,7 @@ func readLines(path string) ([]string, error) {
 }
 
 func speak(str string) {
-	//var wg sync.WaitGroup
-	//wg.Add(1)
-	//go func() {
 	ps.Execute(fmt.Sprintf("Add-Type -AssemblyName System.Speech; $voice = New-Object System.Speech.Synthesis.SpeechSynthesizer; $voice.Speak('%s'); end", str))
-	//defer wg.Done()
-	//}()
-	//wg.Wait()
 }
 
 func loadConfig(configFile string) bool {
