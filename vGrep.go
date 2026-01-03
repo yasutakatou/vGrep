@@ -17,6 +17,7 @@ import (
 type configData struct {
 	LABEL string
 	COUNT int
+	MAX   int
 	VOICE string
 }
 
@@ -25,7 +26,6 @@ var (
 )
 
 func main() {
-	var cnt []int
 	configs = nil
 
 	if len(os.Args) < 2 {
@@ -64,23 +64,17 @@ func main() {
 		for i := 0; i < height; i++ {
 			lineIdx := i + offset
 			if lineIdx < len(lines) {
-				cnt = nil
 				for m := 0; m < len(configs); m++ {
-					cnt = append(cnt, 0)
 					if strings.Index(lines[lineIdx], configs[m].LABEL) != -1 {
 						drawText(s, 0, i, lines[lineIdx], true)
-						cnt[m] = cnt[m] + 1
+						configs[m].COUNT++
+						if configs[m].COUNT >= configs[m].MAX {
+							go speak(configs[m].VOICE)
+							configs[m].COUNT = 0
+						}
 						break
 					} else {
 						drawText(s, 0, i, lines[lineIdx], false)
-					}
-				}
-
-				for m := 0; m < len(configs); m++ {
-					if cnt[m] > configs[m].COUNT {
-						//go speak(configs[m].VOICE)
-						rr := strconv.Itoa(cnt[m])
-						drawText(s, 0, i, rr, false)
 					}
 				}
 			}
@@ -168,7 +162,7 @@ func loadConfig(configFile string) bool {
 		if len(record) == 3 {
 			i, err := strconv.Atoi(record[1])
 			if err == nil {
-				configs = append(configs, configData{LABEL: record[0], COUNT: i, VOICE: record[2]})
+				configs = append(configs, configData{LABEL: record[0], COUNT: 0, MAX: i, VOICE: record[2]})
 				fmt.Println(record)
 			}
 		}
