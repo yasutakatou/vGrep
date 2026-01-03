@@ -89,12 +89,16 @@ func main() {
 			if ev.Key() == tcell.KeyEscape || ev.Rune() == 'q' {
 				return
 			} else if ev.Key() == tcell.KeyDown || ev.Rune() == 'j' {
-				if offset < len(lines)-height {
-					offset++
+				if offset+height > len(lines) {
+					offset = len(lines) - height
+				} else {
+					offset += height
 				}
 			} else if ev.Key() == tcell.KeyUp || ev.Rune() == 'k' {
-				if offset > 0 {
-					offset--
+				if offset-height < 0 {
+					offset = 0
+				} else {
+					offset -= height
 				}
 			}
 		case *tcell.EventResize:
