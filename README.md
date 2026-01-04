@@ -28,6 +28,8 @@
 
 # 機能
 
+<img width="1107" height="619" alt="タイトルなし" src="https://github.com/user-attachments/assets/b8ed6789-f1e3-4bef-9a94-cd3dcf1f8a3d" />
+
 - Unixのmoreコマンドみたいにページビューでテキストファイルを表示します
 - コンフィグに沿って、特定の文字列があった場合に行の色を赤にします
 - コンフィグに沿って、特定の文字列があった場合をカウントし、閾値が超えた場合にコンフィグに定義された音声で注意喚起してくれます
@@ -80,4 +82,5 @@ Out of memory	1	メモリ不足だよ
 ~~~
 
 # ライセンス
+
 Apache-2.0 license
